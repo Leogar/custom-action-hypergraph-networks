@@ -1,7 +1,7 @@
 import numpy as np
 from pyquaternion import Quaternion
 
-from dof_manipulator import dof_6_manipulator
+from hyperdopamine.interfaces.dof_manipulator import dof_6_manipulator
 
 
 class manipulator_pair:
@@ -32,9 +32,38 @@ class manipulator_pair:
         else:
             quaternionDifference = 0
 
-        return np.around(cartesianDifference.reshape(-1, 1), self.decimalsToRound) if self.outputCart else 0, \
-               np.around(polarDifference.reshape(-1, 1), self.decimalsToRound) if self.outputPolar else 0, \
-               np.around(quaternionDifference.elements.reshape(-1, 1) if self.outputQuat else 0, self.decimalsToRound)
+        res = np.array([])
+        if self.outputCart:
+            res = np.concatenate([res, np.around(cartesianDifference.reshape(-1, 1), self.decimalsToRound).flatten()])
+        if self.outputPolar:
+            res = res + np.around(polarDifference.reshape(-1, 1), self.decimalsToRound)
+        if self.outputQuat:
+            res = np.concatenate([res, np.around(quaternionDifference.elements.reshape(-1, 1), self.decimalsToRound).flatten()])
+
+        return res
+        # return [np.around(cartesianDifference.reshape(-1, 1), self.decimalsToRound) if self.outputCart else 0, \
+        #      np.around(polarDifference.reshape(-1, 1), self.decimalsToRound) if self.outputPolar else np.empty((0, 1)), \
+        #      np.around(quaternionDifference.elements.reshape(-1, 1), self.decimalsToRound) if self.outputQuat else 0]
+
+
+    def generate_points(self, start, stop, step):
+        points1 = self.manipulator[0].generate_points(start, stop, step)
+        points2 = self.manipulator[1].generate_points(-start, -stop, -step)
+        pts = np.concatenate([points1, points2])
+        return pts
+
+    def get_current_points(self):
+        points1 = self.manipulator[0].position
+        points2 = self.manipulator[1].position
+        pts = np.concatenate([points1, points2])
+        return np.reshape(pts, [6, 7, 1])
+
+    def randomize(self):
+        rng = np.random.default_rng()
+        angles = rng.integers(-180, 180, (6, 2))
+        # angles = np.random.randint(-180, 180, (6, 2))
+        self.update_angles(0, angles[:, 1])
+        self.update_angles(1, angles[:, 0])
 
 
 def quaternion_multiply(quaternion1, quaternion0):

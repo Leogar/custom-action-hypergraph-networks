@@ -51,13 +51,13 @@ def main(unused_argv):
     runner = run_model_test.create_runner(FLAGS.base_dir, FLAGS.schedule)
 
     links = [0, 30, 20, 10, 0, 5]
-    pair = manipulator_pair(links)
+    pair = manipulator_pair(links, [1, 0, 1])
     plotter = ManipulatorDrawingTool(50, links)
     # plotter.interactive_draw()
 
     pair.randomize()
     points = pair.get_current_points()
-    diff = pair.calculateDifference([1, 0, 1])
+    diff = pair.calculateDifference()
     dff = np.concatenate(diff)
     dff_array = dff
     i = 0
@@ -65,7 +65,7 @@ def main(unused_argv):
     best_difference = np.array([0, 0, 0,  1, 0, 0, 0]) # 0, 0, 0,
     best_difference = best_difference.reshape(7, 1) # 10
     while i < 1000 and done == 0:
-        diff = pair.calculateDifference([1, 0, 1])
+        diff = pair.calculateDifference()
         diff_arr = np.concatenate(diff)
         action = runner._agent.step(0, diff_arr) - 1
         pair.update_angles(1, action)

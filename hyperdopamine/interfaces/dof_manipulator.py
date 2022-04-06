@@ -26,7 +26,7 @@ class dof_6_manipulator:
         return points
 
     def update_angles(self, angles_delta):
-        self.angles += angles_delta
+        self.angles += np.reshape(angles_delta, (6, 1))
         self.position, self.orientation = self.calculate_forward_kinematics(self.angles)
         self.endEffectorPos = self.position[:, -1]
         return self.position, self.orientation
