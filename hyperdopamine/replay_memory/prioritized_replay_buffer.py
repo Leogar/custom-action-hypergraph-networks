@@ -131,7 +131,7 @@ class OutOfGraphPrioritizedReplayBuffer(
     return parent_transition_type + probablilities_type
 
 
-@gin.configurable(blacklist=['observation_shape', 'stack_size',
+@gin.configurable(denylist=['observation_shape', 'stack_size',
                              'update_horizon', 'gamma'])
 class WrappedPrioritizedReplayBuffer(
     circular_replay_buffer.WrappedReplayBuffer):
@@ -176,12 +176,12 @@ class WrappedPrioritizedReplayBuffer(
         reward_dtype=reward_dtype)
 
   def tf_set_priority(self, indices, priorities):
-    return tf.py_func(
+    return tf.numpy_function(
         self.memory.set_priority, [indices, priorities], [],
         name='prioritized_replay_set_priority_py_func')
 
   def tf_get_priority(self, indices):
-    return tf.py_func(
+    return tf.numpy_function(
         self.memory.get_priority, [indices],
         tf.float32,
         name='prioritized_replay_get_priority_py_func')

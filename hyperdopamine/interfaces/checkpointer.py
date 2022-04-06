@@ -29,7 +29,7 @@ def get_latest_checkpoint_number(base_directory):
   def extract_iteration(x):
     return int(x[x.rfind('.') + 1:])
   try:
-    checkpoint_files = tf.gfile.Glob(glob)
+    checkpoint_files = tf.io.gfile.glob(glob)
   except tf.errors.NotFoundError:
     return -1
   try:
@@ -48,7 +48,7 @@ class Checkpointer(object):
     self._checkpoint_frequency = checkpoint_frequency
     self._base_directory = base_directory
     try:
-      tf.gfile.MakeDirs(base_directory)
+      tf.io.gfile.makedirs(base_directory)
     except tf.errors.PermissionDeniedError:
       raise ValueError('Unable to create checkpoint path: {}.'.format(
           base_directory))
@@ -58,7 +58,7 @@ class Checkpointer(object):
     return os.path.join(self._base_directory, filename)
 
   def _save_data_to_file(self, data, filename):
-    with tf.gfile.GFile(filename, 'w') as fout:
+    with tf.io.gfile.GFile(filename, 'w') as fout:
       pickle.dump(data, fout)
 
   def save_checkpoint(self, iteration_number, data):
@@ -69,7 +69,7 @@ class Checkpointer(object):
     self._save_data_to_file(data, filename)
     filename = self._generate_filename('sentinel_checkpoint_complete',
                                        iteration_number)
-    with tf.gfile.GFile(filename, 'wb') as fout:
+    with tf.io.gfile.GFile(filename, 'wb') as fout:
       fout.write('done')
     self._clean_up_old_checkpoints(iteration_number)
 
@@ -83,16 +83,16 @@ class Checkpointer(object):
       stale_sentinel = self._generate_filename('sentinel_checkpoint_complete',
                                                stale_iteration_number)
       try:
-        tf.gfile.Remove(stale_file)
-        tf.gfile.Remove(stale_sentinel)
+        tf.io.gfile.remove(stale_file)
+        tf.io.gfile.remove(stale_sentinel)
       except tf.errors.NotFoundError:
-        tf.logging.info('Unable to remove {} or {}.'.format(stale_file,
+        tf.compat.v1.logging.info('Unable to remove {} or {}.'.format(stale_file,
                                                             stale_sentinel))
 
   def _load_data_from_file(self, filename):
-    if not tf.gfile.Exists(filename):
+    if not tf.io.gfile.exists(filename):
       return None
-    with tf.gfile.GFile(filename, 'rb') as fin:
+    with tf.io.gfile.GFile(filename, 'rb') as fin:
       return pickle.load(fin)
 
   def load_checkpoint(self, iteration_number):

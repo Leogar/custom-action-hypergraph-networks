@@ -51,25 +51,24 @@ class BDQNAgent(rainbow_agent.RainbowAgent):
                summary_writing_frequency=500):
     assert isinstance(observation_shape, tuple)
     assert target_aggregator in ['indep', 'mean', 'max']
-    tf.logging.info('Creating %s agent with the following parameters:',
-                    self.__class__.__name__)
-    tf.logging.info('\t num_sub_actions: %s', str(num_sub_actions))
-    tf.logging.info('\t network: %s', str(network))
-    tf.logging.info('\t target_aggregator: %s', target_aggregator)
-    tf.logging.info('\t use_dueling: %s', use_dueling)
-    tf.logging.info('\t double_dqn: %s', double_dqn)
-    tf.logging.info('\t gamma: %f', gamma)
-    tf.logging.info('\t update_horizon: %f', update_horizon)
-    tf.logging.info('\t min_replay_history: %d', min_replay_history)
-    tf.logging.info('\t update_period: %d', update_period)
-    tf.logging.info('\t target_update_period: %d', target_update_period)
-    tf.logging.info('\t epsilon_train: %f', epsilon_train)
-    tf.logging.info('\t epsilon_eval: %f', epsilon_eval)
-    tf.logging.info('\t epsilon_decay_period: %d', epsilon_decay_period)
-    tf.logging.info('\t replay_scheme: %s', replay_scheme)
-    tf.logging.info('\t tf_device: %s', tf_device)
-    tf.logging.info('\t loss_type: %s', loss_type)
-    tf.logging.info('\t optimizer: %s', optimizer)
+    tf.compat.v1.logging.info('Creating %s agent with the following parameters:', self.__class__.__name__)
+    tf.compat.v1.logging.info('\t num_sub_actions: %s', str(num_sub_actions))
+    tf.compat.v1.logging.info('\t network: %s', str(network))
+    tf.compat.v1.logging.info('\t target_aggregator: %s', target_aggregator)
+    tf.compat.v1.logging.info('\t use_dueling: %s', use_dueling)
+    tf.compat.v1.logging.info('\t double_dqn: %s', double_dqn)
+    tf.compat.v1.logging.info('\t gamma: %f', gamma)
+    tf.compat.v1.logging.info('\t update_horizon: %f', update_horizon)
+    tf.compat.v1.logging.info('\t min_replay_history: %d', min_replay_history)
+    tf.compat.v1.logging.info('\t update_period: %d', update_period)
+    tf.compat.v1.logging.info('\t target_update_period: %d', target_update_period)
+    tf.compat.v1.logging.info('\t epsilon_train: %f', epsilon_train)
+    tf.compat.v1.logging.info('\t epsilon_eval: %f', epsilon_eval)
+    tf.compat.v1.logging.info('\t epsilon_decay_period: %d', epsilon_decay_period)
+    tf.compat.v1.logging.info('\t replay_scheme: %s', replay_scheme)
+    tf.compat.v1.logging.info('\t tf_device: %s', tf_device)
+    tf.compat.v1.logging.info('\t loss_type: %s', loss_type)
+    tf.compat.v1.logging.info('\t optimizer: %s', optimizer)
 
     self.num_sub_actions = num_sub_actions
     self.observation_shape = tuple(observation_shape)
@@ -103,7 +102,7 @@ class BDQNAgent(rainbow_agent.RainbowAgent):
     with tf.device(tf_device):
       state_shape = (1,) + self.observation_shape + (stack_size,)
       self.state = np.zeros(state_shape)
-      self.state_ph = tf.placeholder(self.observation_dtype, state_shape,
+      self.state_ph = tf.compat.v1.placeholder(self.observation_dtype, state_shape,
                                      name='state_ph')
       self._replay = self._build_replay_buffer(use_staging)
       self._build_networks()
@@ -111,9 +110,9 @@ class BDQNAgent(rainbow_agent.RainbowAgent):
       self._sync_qt_ops = self._build_sync_op()
 
     if self.summary_writer is not None:
-      self._merged_summaries = tf.summary.merge_all()
+      self._merged_summaries = tf.compat.v1.Summary.merge_all()
     self._sess = sess
-    self._saver = tf.train.Saver(max_to_keep=max_tf_checkpoints_to_keep)
+    self._saver = tf.compat.v1.train.Saver(max_to_keep=max_tf_checkpoints_to_keep)
     self._observation = None
     self._last_observation = None
 
@@ -127,8 +126,8 @@ class BDQNAgent(rainbow_agent.RainbowAgent):
         **kwargs)
 
   def _build_networks(self):
-    self.online_convnet = tf.make_template('Online', self._network_template)
-    self.target_convnet = tf.make_template('Target', self._network_template)
+    self.online_convnet = tf.compat.v1.make_template('Online', self._network_template)
+    self.target_convnet = tf.compat.v1.make_template('Target', self._network_template)
     self._net_outputs = self.online_convnet(self.state_ph)
 
     self._bq_argmax = []
@@ -186,16 +185,16 @@ class BDQNAgent(rainbow_agent.RainbowAgent):
 
       if self.loss_type == 'Huber':
         branch_loss.append(tf.losses.huber_loss(
-            branch_target, replay_chosen_bq_dim, reduction=tf.losses.Reduction.NONE))
+            branch_target, replay_chosen_bq_dim, reduction=tf.compat.v1.losses.Reduction.NONE))
       elif self.loss_type == 'MSE':
-        branch_loss.append(tf.losses.mean_squared_error(
-            branch_target, replay_chosen_bq_dim, reduction=tf.losses.Reduction.NONE))
+        branch_loss.append(tf.compat.v1.losses.mean_squared_error(
+            branch_target, replay_chosen_bq_dim, reduction=tf.compat.v1.losses.Reduction.NONE))
       else:
         raise ValueError('Invalid loss type: {}'.format(self.loss_type))
 
     if self.summary_writer is not None:
       with tf.variable_scope('Losses'):
-        tf.summary.scalar(self.loss_type+'Loss', tf.reduce_mean(branch_loss))
+        tf.compat.v1.Summary.scalar(self.loss_type+'Loss', tf.reduce_mean(branch_loss))
     return self.optimizer.minimize(tf.reduce_mean(branch_loss)), tf.reduce_mean(branch_loss, 0)
 
   def _select_action(self):

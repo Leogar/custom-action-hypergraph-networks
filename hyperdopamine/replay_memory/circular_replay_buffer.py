@@ -63,16 +63,16 @@ class OutOfGraphReplayBuffer(object):
       raise ValueError('There is not enough capacity to cover '
                        'update_horizon and stack_size.')
 
-    tf.logging.info(
+    tf.compat.v1.logging.info(
         'Creating a %s replay memory with the following parameters:',
         self.__class__.__name__)
-    tf.logging.info('\t observation_shape: %s', str(observation_shape))
-    tf.logging.info('\t observation_dtype: %s', str(observation_dtype))
-    tf.logging.info('\t stack_size: %d', stack_size)
-    tf.logging.info('\t replay_capacity: %d', replay_capacity)
-    tf.logging.info('\t batch_size: %d', batch_size)
-    tf.logging.info('\t update_horizon: %d', update_horizon)
-    tf.logging.info('\t gamma: %f', gamma)
+    tf.compat.v1.logging.info('\t observation_shape: %s', str(observation_shape))
+    tf.compat.v1.logging.info('\t observation_dtype: %s', str(observation_dtype))
+    tf.compat.v1.logging.info('\t stack_size: %d', stack_size)
+    tf.compat.v1.logging.info('\t replay_capacity: %d', replay_capacity)
+    tf.compat.v1.logging.info('\t batch_size: %d', batch_size)
+    tf.compat.v1.logging.info('\t update_horizon: %d', update_horizon)
+    tf.compat.v1.logging.info('\t gamma: %f', gamma)
 
     self._action_shape = action_shape
     self._action_dtype = action_dtype
@@ -337,14 +337,14 @@ class OutOfGraphReplayBuffer(object):
     return checkpointable_elements
 
   def save(self, checkpoint_dir, iteration_number):
-    if not tf.gfile.Exists(checkpoint_dir):
+    if not tf.io.gfile.exists(checkpoint_dir):
       return
 
     checkpointable_elements = self._return_checkpointable_elements()
 
     for attr in checkpointable_elements:
       filename = self._generate_filename(checkpoint_dir, attr, iteration_number)
-      with tf.gfile.Open(filename, 'wb') as f:
+      with tf.io.gfile.GFile(filename, 'wb') as f:
         with gzip.GzipFile(fileobj=f) as outfile:
           if attr.startswith(STORE_FILENAME_PREFIX):
             array_name = attr[len(STORE_FILENAME_PREFIX):]
@@ -359,7 +359,7 @@ class OutOfGraphReplayBuffer(object):
         stale_filename = self._generate_filename(checkpoint_dir, attr,
                                                  stale_iteration_number)
         try:
-          tf.gfile.Remove(stale_filename)
+          tf.io.gfile.remove(stale_filename)
         except tf.errors.NotFoundError:
           pass
 
@@ -367,12 +367,12 @@ class OutOfGraphReplayBuffer(object):
     save_elements = self._return_checkpointable_elements()
     for attr in save_elements:
       filename = self._generate_filename(checkpoint_dir, attr, suffix)
-      if not tf.gfile.Exists(filename):
+      if not tf.io.gfile.exists(filename):
         raise tf.errors.NotFoundError(None, None,
                                       'Missing file: {}'.format(filename))
     for attr in save_elements:
       filename = self._generate_filename(checkpoint_dir, attr, suffix)
-      with tf.gfile.Open(filename, 'rb') as f:
+      with tf.io.gfile.GFile(filename, 'rb') as f:
         with gzip.GzipFile(fileobj=f) as infile:
           if attr.startswith(STORE_FILENAME_PREFIX):
             array_name = attr[len(STORE_FILENAME_PREFIX):]
@@ -383,7 +383,7 @@ class OutOfGraphReplayBuffer(object):
             self.__dict__[attr] = pickle.load(infile)
 
 
-@gin.configurable(blacklist=['observation_shape', 'stack_size',
+@gin.configurable(denylist=['observation_shape', 'stack_size',
                              'update_horizon', 'gamma'])
 class WrappedReplayBuffer(object):
   def __init__(self,
@@ -440,7 +440,7 @@ class WrappedReplayBuffer(object):
     with tf.name_scope('sample_replay'):
       with tf.device('/cpu:*'):
         transition_type = self.memory.get_transition_elements()
-        transition_tensors = tf.py_func(
+        transition_tensors = tf.numpy_function(
             self.memory.sample_transition_batch, [],
             [return_entry.type for return_entry in transition_type],
             name='replay_sample_py_func')

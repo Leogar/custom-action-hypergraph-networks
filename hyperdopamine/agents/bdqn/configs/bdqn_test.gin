@@ -9,11 +9,11 @@ import gin.tf.external_configurables
 
 create_discretised_environment.environment_name = 'hopper_hop'
 create_discretised_environment.version = %environment_metadata.HOPPER_HOP_ENV_VER
-Runner.max_steps_per_episode = %environment_metadata.HOPPER_HOP_TIMELIMIT
+Runner1.max_steps_per_episode = %environment_metadata.HOPPER_HOP_TIMELIMIT
 BDQNAgent.observation_shape = %environment_metadata.HOPPER_HOP_OBSERVATION_SHAPE
 WrappedPrioritizedReplayBuffer.action_shape = %environment_metadata.HOPPER_HOP_ACTION_SHAPE
 
-create_agent.agent_name = 'bdqn'
+create_agent1.agent_name = 'bdqn'
 BDQNAgent.observation_dtype = %networks.OBSERVATION_DTYPE_FLOAT32
 BDQNAgent.stack_size = %networks.STACK_SIZE_1
 BDQNAgent.network = @networks.branching_network
@@ -33,22 +33,22 @@ BDQNAgent.tf_device = '/cpu:*'  # use '/gpu:0' for GPU version
 BDQNAgent.loss_type = 'MSE'  # 'Huber' supported too
 BDQNAgent.optimizer = @tf.train.AdamOptimizer()
 
-tf.train.AdamOptimizer.learning_rate = 0.0001
+tf.train.AdamOptimizer.learning_rate = 0.00001
 tf.train.AdamOptimizer.epsilon = 0.0003125
 
 create_discretised_environment.action_rep = 'branching'
 create_discretised_environment.num_sub_actions = 5
 create_discretised_environment.environment_seed = 0
 
-# Use TrainRunner for train-only schedule or Runner for train-and-eval schedule, 
+# Use TrainRunner1 for train-only schedule or Runner1 for train-and-eval schedule, 
 # only needed for `create_environment_fn`.
-Runner.create_environment_fn = @multi_cont_lib.create_discretised_environment
-Runner.agent_seed = 0
-Runner.num_iterations = 150
-Runner.training_steps = 10000
-Runner.evaluation_steps = 5000
-Runner.render = False
-Runner.reward_clipping = False
+Runner1.create_environment_fn = @multi_cont_lib.create_discretised_environment
+Runner1.agent_seed = 0
+Runner1.num_iterations = 10
+Runner1.training_steps = 10000
+Runner1.evaluation_steps = 5000
+Runner1.render = False
+Runner1.reward_clipping = False
 
 WrappedPrioritizedReplayBuffer.replay_capacity = 100000
 WrappedPrioritizedReplayBuffer.batch_size = 64

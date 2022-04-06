@@ -7,7 +7,6 @@ gin.constant('environment_metadata.MOUNTAINCARCONTINUOUS_ACTION_SHAPE', (1,))
 gin.constant('environment_metadata.MOUNTAINCARCONTINUOUS_TIMELIMIT', 999)
 gin.constant('environment_metadata.MOUNTAINCARCONTINUOUS_ENV_VER', 'v0')
 
-
 ''' GYM BOX2D OBSERVATION SPACE '''
 gin.constant('environment_metadata.BIPEDALWALKER_OBSERVATION_SHAPE', (24, 1))
 gin.constant('environment_metadata.BIPEDALWALKERHARDCORE_OBSERVATION_SHAPE', (24, 1))
@@ -40,6 +39,7 @@ gin.constant('environment_metadata.INVERTEDPENDULUM_OBSERVATION_SHAPE', (4, 1))
 gin.constant('environment_metadata.REACHER_OBSERVATION_SHAPE', (11, 1))
 gin.constant('environment_metadata.SWIMMER_OBSERVATION_SHAPE', (8, 1))
 gin.constant('environment_metadata.WALKER2D_OBSERVATION_SHAPE', (17, 1))
+gin.constant('environment_metadata.MYENV_OBSERVATION_SHAPE', (7, 1))
 
 ''' GYM MUJOCO ACTION SPACE '''
 gin.constant('environment_metadata.ANT_ACTION_SHAPE', (8,))
@@ -52,6 +52,7 @@ gin.constant('environment_metadata.INVERTEDPENDULUM_ACTION_SHAPE', (1,))
 gin.constant('environment_metadata.REACHER_ACTION_SHAPE', (2,))
 gin.constant('environment_metadata.SWIMMER_ACTION_SHAPE', (2,))
 gin.constant('environment_metadata.WALKER2D_ACTION_SHAPE', (6,))
+gin.constant('environment_metadata.MYENV_ACTION_SHAPE', (6,))
 
 ''' GYM MUJOCO TIME LIMIT '''
 gin.constant('environment_metadata.ANT_TIMELIMIT', 1000)
@@ -64,6 +65,7 @@ gin.constant('environment_metadata.INVERTEDPENDULUM_TIMELIMIT', 1000)
 gin.constant('environment_metadata.REACHER_TIMELIMIT', 50)
 gin.constant('environment_metadata.SWIMMER_TIMELIMIT', 1000)
 gin.constant('environment_metadata.WALKER2D_TIMELIMIT', 1000)
+gin.constant('environment_metadata.MYENV_TIMELIMIT', 1000)
 
 ''' GYM MUJOCO ENVIRONMENT VERSION '''
 gin.constant('environment_metadata.ANT_ENV_VER', 'v3')
@@ -76,6 +78,7 @@ gin.constant('environment_metadata.INVERTEDPENDULUM_ENV_VER', 'v2')
 gin.constant('environment_metadata.REACHER_ENV_VER', 'v2')
 gin.constant('environment_metadata.SWIMMER_ENV_VER', 'v3')
 gin.constant('environment_metadata.WALKER2D_ENV_VER', 'v3')
+gin.constant('environment_metadata.MYENV_ENV_VER', 'v0')
 
 
 ''' GYM MUJOCO OBSERVATION SPACE '''

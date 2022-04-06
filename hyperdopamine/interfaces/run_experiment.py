@@ -116,22 +116,22 @@ class Runner(object):
     self._max_steps_per_episode = max_steps_per_episode
     self._base_dir = base_dir
     self._create_directories()
-    self._summary_writer = tf.summary.FileWriter(self._base_dir)
+    self._summary_writer = tf.compat.v1.summary.FileWriter(self._base_dir)
     self._render = render
     self._reward_clipping = reward_clipping
     self._environment = create_environment_fn()
 
     print('Seeding agent with seed', agent_seed)
-    tf.set_random_seed(agent_seed)
+    tf.compat.v1.set_random_seed(agent_seed)
     np.random.seed(agent_seed)
     random.seed(agent_seed)
 
-    config = tf.ConfigProto(allow_soft_placement=True)
-    self._sess = tf.Session('', config=config)
+    config = tf.compat.v1.ConfigProto(allow_soft_placement=True)
+    self._sess = tf.compat.v1.Session('', config=config)
     self._agent = create_agent_fn(self._sess, self._environment,
                                   summary_writer=self._summary_writer)
-    self._summary_writer.add_graph(graph=tf.get_default_graph())
-    self._sess.run(tf.global_variables_initializer())
+    self._summary_writer.add_graph(graph=tf.compat.v1.get_default_graph())
+    self._sess.run(tf.compat.v1.global_variables_initializer())
     self._initialize_checkpointer_and_maybe_resume(checkpoint_file_prefix)
 
   def _create_directories(self):
@@ -154,7 +154,7 @@ class Runner(object):
         assert 'current_iteration' in experiment_data
         self._logger.data = experiment_data['logs']
         self._start_iteration = experiment_data['current_iteration'] + 1
-        tf.logging.info('Reloaded checkpoint and will start from iteration %d',
+        tf.compat.v1.logging.info('Reloaded checkpoint and will start from iteration %d',
                         self._start_iteration)
 
   def _initialize_episode(self):
@@ -232,9 +232,9 @@ class Runner(object):
     average_return = sum_returns / num_episodes if num_episodes > 0 else 0.0
     statistics.append({'train_average_return': average_return})
     time_delta = time.time() - start_time
-    tf.logging.info('Average undiscounted return per training episode: %.2f',
+    tf.compat.v1.logging.info('Average undiscounted return per training episode: %.2f',
                     average_return)
-    tf.logging.info('Average training steps per second: %.2f',
+    tf.compat.v1.logging.info('Average training steps per second: %.2f',
                     number_steps / time_delta)
     return num_episodes, average_return
 
@@ -243,14 +243,14 @@ class Runner(object):
     _, sum_returns, num_episodes = self._run_one_phase(
         self._evaluation_steps, statistics, 'eval')
     average_return = sum_returns / num_episodes if num_episodes > 0 else 0.0
-    tf.logging.info('Average undiscounted return per evaluation episode: %.2f',
+    tf.compat.v1.logging.info('Average undiscounted return per evaluation episode: %.2f',
                     average_return)
     statistics.append({'eval_average_return': average_return})
     return num_episodes, average_return
 
   def _run_one_iteration(self, iteration):
     statistics = iteration_statistics.IterationStatistics()
-    tf.logging.info('Starting iteration %d', iteration)
+    tf.compat.v1.logging.info('Starting iteration %d', iteration)
     num_episodes_train, average_reward_train = self._run_train_phase(
         statistics)
     num_episodes_eval, average_reward_eval = self._run_eval_phase(
@@ -265,14 +265,14 @@ class Runner(object):
                                   average_reward_train,
                                   num_episodes_eval,
                                   average_reward_eval):
-    summary = tf.Summary(value=[
-        tf.Summary.Value(tag='Train/NumEpisodes',
+    summary = tf.compat.v1.Summary(value=[
+        tf.compat.v1.Summary.Value(tag='Train/NumEpisodes',
                          simple_value=num_episodes_train),
-        tf.Summary.Value(tag='Train/AverageReturns',
+        tf.compat.v1.Summary.Value(tag='Train/AverageReturns',
                          simple_value=average_reward_train),
-        tf.Summary.Value(tag='Eval/NumEpisodes',
+        tf.compat.v1.Summary.Value(tag='Eval/NumEpisodes',
                          simple_value=num_episodes_eval),
-        tf.Summary.Value(tag='Eval/AverageReturns',
+        tf.compat.v1.Summary.Value(tag='Eval/AverageReturns',
                          simple_value=average_reward_eval)
     ])
     self._summary_writer.add_summary(summary, iteration)
@@ -291,9 +291,9 @@ class Runner(object):
       self._checkpointer.save_checkpoint(iteration, experiment_data)
 
   def run_experiment(self):
-    tf.logging.info('Beginning training...')
+    tf.compat.v1.logging.info('Beginning training...')
     if self._num_iterations <= self._start_iteration:
-      tf.logging.warning('num_iterations (%d) < start_iteration(%d)',
+      tf.compat.v1.logging.warning('num_iterations (%d) < start_iteration(%d)',
                          self._num_iterations, self._start_iteration)
       return
 
@@ -314,7 +314,7 @@ class TrainRunner(Runner):
 
   def __init__(self, base_dir, create_agent_fn,
                create_environment_fn=atari_lib.create_atari_environment):
-    tf.logging.info('Creating TrainRunner...')
+    tf.compat.v1.logging.info('Creating TrainRunner...')
     super(TrainRunner, self).__init__(base_dir, create_agent_fn,
                                       create_environment_fn)
     self._agent.eval_mode = False
@@ -329,9 +329,9 @@ class TrainRunner(Runner):
 
   def _save_tensorboard_summaries(self, iteration, num_episodes,
                                   average_reward):
-    summary = tf.Summary(value=[
-        tf.Summary.Value(tag='Train/NumEpisodes', simple_value=num_episodes),
-        tf.Summary.Value(
+    summary = tf.compat.v1.Summary(value=[
+        tf.compat.v1.Summary.Value(tag='Train/NumEpisodes', simple_value=num_episodes),
+        tf.compat.v1.Summary.Value(
             tag='Train/AverageReturns', simple_value=average_reward),
     ])
     self._summary_writer.add_summary(summary, iteration)

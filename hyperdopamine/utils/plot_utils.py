@@ -45,14 +45,14 @@ def load_baselines(base_dir, verbose=False):
   for game in ALL_GAMES:
     for agent in ['dqn', 'c51', 'rainbow', 'iqn']:
       game_data_file = os.path.join(base_dir, agent, '{}.pkl'.format(game))
-      if not tf.gfile.Exists(game_data_file):
+      if not tf.io.gfile.exists(game_data_file):
         if verbose:
           # pylint: disable=superfluous-parens
           print('Unable to load data for agent {} on game {}'.format(agent,
                                                                      game))
           # pylint: enable=superfluous-parens
         continue
-      with tf.gfile.Open(game_data_file, 'rb') as f:
+      with tf.io.gfile.GFile(game_data_file, 'rb') as f:
         if sys.version_info.major >= 3:
           # pylint: disable=unexpected-keyword-arg
           single_agent_data = pickle.load(f, encoding='latin1')
@@ -76,7 +76,7 @@ def load_statistics(log_path, iteration_number=None, verbose=True):
     # pylint: disable=superfluous-parens
     print('Reading statistics from: {}'.format(log_file))
     # pylint: enable=superfluous-parens
-  with tf.gfile.Open(log_file, 'rb') as f:
+  with tf.io.gfile.GFile(log_file, 'rb') as f:
     return pickle.load(f), iteration_number
 
 
@@ -90,7 +90,7 @@ def get_latest_file(path):
 
 def get_latest_iteration(path):
   glob = os.path.join(path, '{}_[0-9]*'.format(FILE_PREFIX))
-  log_files = tf.gfile.Glob(glob)
+  log_files = tf.io.gfile.glob(glob)
   if not log_files:
     raise ValueError('No log data found at {}'.format(path))
   def extract_iteration(x):

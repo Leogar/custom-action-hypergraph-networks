@@ -62,8 +62,8 @@ class RainbowAgent(dqn_agent.DQNAgent):
                    learning_rate=0.00001, epsilon=0.0003125),
                summary_writer=None,
                summary_writing_frequency=500):
-    tf.logging.info('\t double_dqn: %s', double_dqn)
-    tf.logging.info('\t replay_scheme: %s', replay_scheme)
+    tf.compat.v1.logging.info('\t double_dqn: %s', double_dqn)
+    tf.compat.v1.logging.info('\t replay_scheme: %s', replay_scheme)
 
     self._double_dqn = double_dqn
     self._replay_scheme = replay_scheme
@@ -99,8 +99,8 @@ class RainbowAgent(dqn_agent.DQNAgent):
         summary_writing_frequency=summary_writing_frequency)
 
   def _build_networks(self):
-    self.online_convnet = tf.make_template('Online', self._network_template)
-    self.target_convnet = tf.make_template('Target', self._network_template)
+    self.online_convnet = tf.compat.v1.make_template('Online', self._network_template)
+    self.target_convnet = tf.compat.v1.make_template('Target', self._network_template)
     self._net_outputs = self.online_convnet(self.state_ph)
     self._q_argmax = tf.argmax(self._net_outputs.q_values, axis=1)[0]
     self._replay_net_outputs = self.online_convnet(self._replay.states)
@@ -151,10 +151,10 @@ class RainbowAgent(dqn_agent.DQNAgent):
     target = tf.stop_gradient(self._build_target_q_op())
     if self.loss_type == 'Huber':
       loss = tf.losses.huber_loss(
-          target, replay_chosen_q, reduction=tf.losses.Reduction.NONE)
+          target, replay_chosen_q, reduction=tf.compat.v1.losses.Reduction.NONE)
     elif self.loss_type == 'MSE':
-      loss = tf.losses.mean_squared_error(
-          target, replay_chosen_q, reduction=tf.losses.Reduction.NONE)
+      loss = tf.compat.v1.losses.mean_squared_error(
+          target, replay_chosen_q, reduction=tf.compat.v1.losses.Reduction.NONE)
     else:
       raise ValueError('Invalid loss type: {}'.format(self.loss_type))
 
@@ -171,7 +171,7 @@ class RainbowAgent(dqn_agent.DQNAgent):
     with tf.control_dependencies([update_priorities_op]):
       if self.summary_writer is not None:
         with tf.variable_scope('Losses'):
-          tf.summary.scalar(self.loss_type+'Loss', tf.reduce_mean(loss))
+          tf.compat.v1.Summary.scalar(self.loss_type+'Loss', tf.reduce_mean(loss))
       return self.optimizer.minimize(tf.reduce_mean(loss)), loss
 
   def _store_transition(self,
