@@ -15,7 +15,8 @@ class manipulator_pair:
         self.outputQuat = output[2]
 
     def update_angles(self, manipulator_number, angles_delta):
-        self.manipulator[manipulator_number].update_angles(angles_delta)
+        pos, ori = self.manipulator[manipulator_number].update_angles(angles_delta)
+        print(manipulator_number," ",pos[0, 2], " ",ori[0, 2], end="\r")
 
     def calculateDifference(self):
         endEffectorPos = np.array([self.manipulator[0].endEffectorPos, self.manipulator[1].endEffectorPos])

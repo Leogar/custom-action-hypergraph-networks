@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 from absl import app
 from absl import flags
 
-from hyperdopamine.interfaces import run_model_test
+from hyperdopamine.interfaces import run_experiment
 from hyperdopamine.interfaces.dof_manipulator import dof_6_manipulator
 from hyperdopamine.interfaces.manipulator_pair import manipulator_pair
 from hyperdopamine.interfaces.manipulatorDrawingTool import ManipulatorDrawingTool
@@ -44,37 +44,35 @@ flags.DEFINE_multi_string(
 
 FLAGS = flags.FLAGS
 
-
 def main(unused_argv):
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
-    run_model_test.load_gin_configs(FLAGS.gin_files, FLAGS.gin_bindings)
-    runner = run_model_test.create_runner(FLAGS.base_dir, FLAGS.schedule)
+    run_experiment.load_gin_configs(FLAGS.gin_files, FLAGS.gin_bindings)
+    runner = run_experiment.create_runner(FLAGS.base_dir, FLAGS.schedule)
 
     links = [0, 30, 20, 10, 0, 5]
     pair = manipulator_pair(links, [1, 0, 1])
-    plotter = ManipulatorDrawingTool(50, links)
+    plotter = ManipulatorDrawingTool(50, links, [1, 0, 1])
     # plotter.interactive_draw()
 
     pair.randomize()
     points = pair.get_current_points()
-    diff = pair.calculateDifference()
-    dff = np.concatenate(diff)
-    dff_array = dff
+    diff = pair.calculateDifference().reshape(-1,1)
+    #dff = np.concatenate(diff)
+    dff_array = diff
     i = 0
     done = 0
     best_difference = np.array([0, 0, 0,  1, 0, 0, 0]) # 0, 0, 0,
     best_difference = best_difference.reshape(7, 1) # 10
     while i < 1000 and done == 0:
-        diff = pair.calculateDifference()
-        diff_arr = np.concatenate(diff)
-        action = runner._agent.step(0, diff_arr) - 1
+        diff = pair.calculateDifference().reshape(-1,1)
+        action = runner._agent.step(0, diff) - 1
         pair.update_angles(1, action)
         points = np.append(points, pair.get_current_points(), 2)
-        dff_array = np.append(dff_array, np.concatenate(diff), 1)
-        if sum((diff_arr - best_difference) ** 2) < 0.01:
+        dff_array = np.append(dff_array, diff, 1)
+        if sum((diff - best_difference) ** 2) < 0.01:
             done = 1
         i += 1
-        print(i, end="\r")
+        #print(i, end="\r")
     # plotter.draw(points, dff_array, save=True, show=False)
     plotter.draw(points, dff_array, save=False, show=True)
     # plotter.interactive_draw()

@@ -8,7 +8,7 @@ import numpy as np
 from matplotlib import animation as animation
 from matplotlib.widgets import Button
 
-from manipulator_pair import manipulator_pair
+from hyperdopamine.interfaces.manipulator_pair import manipulator_pair
 
 
 class ManipulatorDrawingTool:
@@ -45,12 +45,22 @@ class ManipulatorDrawingTool:
         self.outputPolar = output[1]
         self.outputQuat = output[2]
 
-    def draw(self, points, save, show):
+    def setup_deltas(self):
+        self.axes_deltas[0] = plt.axes([0.01, 0.01, 0.25, 0.1])
+        self.axes_deltas[1] = plt.axes([0.26, 0.01, 0.25, 0.1])
+        self.axes_deltas[2] = plt.axes([0.51, 0.01, 0.25, 0.1])
+        self.deltaButtons[0] = Button(self.axes_deltas[0], f'Cartesian delta:\nX: 0\nY: 0\nZ: 0')
+        self.deltaButtons[1] = Button(self.axes_deltas[1], f'Polar delta:\nRadius: 0\nAzimuth: 0\nElevation: 0')
+        self.deltaButtons[2] = Button(self.axes_deltas[2], f'Quaternion delta:\n1\n0i\n0j\n0k')
+
+    def draw(self, points, diff, save, show):
 
         x_size, y_size, z_size = points.shape
-        lines = self.ax.plot(points[0, :, 0], points[1, :, 0], points[2, :, 0])[0]
-        line_ani = animation.FuncAnimation(self.fig, update_lines, z_size, fargs=(points, lines),
-                                           interval=200, blit=False)
+        lines1 = self.ax.plot(points[0, :, 0], points[1, :, 0], points[2, :, 0])[0]
+        lines2 = self.ax.plot(points[3, :, 0], points[4, :, 0], points[5, :, 0])[0]
+        line_ani = animation.FuncAnimation(self.fig, update_lines, z_size, fargs=(points, diff, [lines1, lines2], self.deltaButtons),
+                                           interval=100, blit=False)
+        self.setup_deltas()
         if save:
             now = datetime.now()
             dt_string = now.strftime("%d-%m-%Y-%H-%M-%S.gif")
@@ -76,7 +86,7 @@ class ManipulatorDrawingTool:
                                    label=self.legend[0])[0]
 
         plt.legend([self.lines1, self.lines2], self.legend, loc='best', bbox_to_anchor=(0.5, 1.5, 0.5, 0.5))
-        plt.show(block=True)
+        plt.show(block=False)
 
     def change_angle(self, event, value):
         diff = 10
@@ -112,6 +122,9 @@ class ManipulatorDrawingTool:
                         functools.partial(self.change_angle, value=(theta, sign, arm)))
                 self.axes_labels[arm][theta] = plt.axes([0.85, posY[arm] - 0.06 * theta, 0.05, 0.045])
                 self.axes_buttons[arm][theta] = Button(self.axes_labels[arm][theta], '0')
+        self.setup_deltas()
+
+    def setup_deltas(self):
         self.axes_deltas[0] = plt.axes([0.01, 0.01, 0.25, 0.1])
         self.axes_deltas[1] = plt.axes([0.26, 0.01, 0.25, 0.1])
         self.axes_deltas[2] = plt.axes([0.51, 0.01, 0.25, 0.1])
@@ -133,7 +146,22 @@ class ManipulatorDrawingTool:
                 f'Quaternion delta:\n{quat[0, 0]}\n{quat[1, 0]}i\n{quat[2, 0]}j\n{quat[3, 0]}k')
 
 
-def update_lines(num, dataLines, lines):
-    lines.set_data(dataLines[0:2, :, num])
-    lines.set_3d_properties(dataLines[2, :, num])
+
+def update_lines(num, dataLines, diff, lines, deltaButtons):
+    lines[0].set_data(dataLines[0:2, :, num])
+    lines[0].set_3d_properties(dataLines[2, :, num])
+    lines[1].set_data(dataLines[3:5, :, num])
+    lines[1].set_3d_properties(dataLines[5, :, num])
+    V = 0
+    if not isinstance(deltaButtons[0], list):
+        deltaButtons[0].label.set_text(
+        f'Cartesian delta:\nX: {diff[V, num]}\nY: {diff[V+1, num]}\nZ: {diff[V+2, num]}')
+        V = V + 3
+    if not isinstance(deltaButtons[1], list):
+        deltaButtons[1].label.set_text(
+        f'Polar delta:\nRadius: {diff[V, num]}\nAzimuth: {diff[V+1, num]}\nElevation: {diff[V+2, num]}')
+        V = V + 3
+    if not isinstance(deltaButtons[2], list):
+        deltaButtons[2].label.set_text(
+        f'Quaternion delta:\n{diff[V, num]}\n{diff[V+1, num]}i\n{diff[V+2, num]}j\n{diff[V+3, num]}k')
     return lines
