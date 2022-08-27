@@ -438,7 +438,7 @@ def _hgqn_network(num_actions, num_sub_actions, state, use_dueling,
 @gin.configurable
 def _branching_network(num_sub_actions, state, use_dueling):
   from hyperdopamine.agents.utils import ceil_rounder
-  LAST_NET_H = 400
+  LAST_NET_H = 1200
   LAYER_WIDTH = ceil_rounder(LAST_NET_H / len(num_sub_actions))
   net = tf.cast(state, tf.float32)
   net = slim.flatten(net)

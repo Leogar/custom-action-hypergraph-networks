@@ -18,7 +18,7 @@ BDQNAgent.observation_dtype = %networks.OBSERVATION_DTYPE_FLOAT32
 BDQNAgent.stack_size = %networks.STACK_SIZE_1
 BDQNAgent.network = @networks.branching_network
 BDQNAgent.target_aggregator = 'mean'  # 'indep' and 'max' supported too
-BDQNAgent.use_dueling = False
+BDQNAgent.use_dueling = True
 BDQNAgent.double_dqn = False  # True not implemented
 BDQNAgent.gamma = 0.99
 BDQNAgent.update_horizon = 1
@@ -44,7 +44,7 @@ create_discretised_environment.environment_seed = 0
 # only needed for `create_environment_fn`.
 Runner.create_environment_fn = @multi_cont_lib.create_discretised_environment
 Runner.agent_seed = 0
-Runner.num_iterations = 10
+Runner.num_iterations = 200
 Runner.training_steps = 10000
 Runner.evaluation_steps = 5000
 Runner.render = False

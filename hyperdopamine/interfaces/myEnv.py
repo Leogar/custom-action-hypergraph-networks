@@ -18,56 +18,61 @@ class myEnv(gym.Env):
         QuatHighBoundary = [1, 1, 1, 1]
         lowBoundary = []
         highBoundary = []
+        self.best_difference = []
         if self.used_coords[0]:
             lowBoundary = lowBoundary + cartesianLowBoundary
             highBoundary = highBoundary + cartesianHighBoundary
+            self.best_difference = self.best_difference + [0, 0, 0]
         if self.used_coords[1]:
             lowBoundary = lowBoundary + SphericalLowBoundary
             highBoundary = highBoundary + SphericalHighBoundary
+            self.best_difference = self.best_difference + [0, 0, 0]
         if self.used_coords[2]:
             lowBoundary = lowBoundary + QuatLowBoundary
             highBoundary = highBoundary + QuatHighBoundary
+            self.best_difference = self.best_difference + [1, 0, 0, 0]
 
+
+        self.best_difference = np.array(self.best_difference)
+        self.best_difference = self.best_difference.reshape(len(self.best_difference), 1)
         #  lowBoundary = np.array([-65, -65, -65, -65, -180, -180, -1, -1, -1, -1])
         #  highBoundary = np.array([65, 65, 65, 65, 180, 180, 1, 1, 1, 1])
 
         self.action_space = gym.spaces.Box(np.full((6, 1), -2), np.full((6, 1), 2))
         self.observation_space = gym.spaces.Box(np.array(lowBoundary), np.array(highBoundary))
 
-        self.milestone = 0
+        self.milestone = 1
 
     def step(self, action):
-        best_difference = []
-        if self.used_coords[0]:
-            best_difference = best_difference + [0, 0, 0]
-        if self.used_coords[1]:
-            best_difference = best_difference + [0, 0, 0]
-        if self.used_coords[2]:
-            best_difference = best_difference + [1, 0, 0, 0]
         # nest_difference = np.array([0, 0, 0, 0, 0, 0, 1, 0, 0, 0])
-        best_difference = np.array(best_difference)
-        best_difference = best_difference.reshape(len(best_difference), 1)
         self.manipulators.update_angles(1, action)
 
         state = self.manipulators.calculateDifference()
         state_arr = state.reshape((7, 1))
-        res = (state_arr - best_difference) ** 2
+        res = (state_arr - self.best_difference) ** 2
         diff = sum(res)
-        reward = -diff
+        reward = (self.previous_diff - diff) * 10
         reward = reward[0]
+        self.previous_diff = diff
+        #reward = -diff
+        #reward = np.log(diff)
+        #reward = reward[0]
         done = diff < 1e-3
-        if diff < 10 ** (4 - self.milestone):
-            add = 10 ** self.milestone
-            reward = reward + add
-            self.milestone = self.milestone + 1
-            #tf.compat.v1.logging.info('\t Milestone %s reached! Reward deployed: %s', str(self.milestone), str(add))
+        #if diff < 10 ** (4 - self.milestone):
+        #    add = 10 ** self.milestone
+        #    reward = reward + add
+        #    self.milestone = self.milestone + 1
+        #    #tf.compat.v1.logging.info('\t Milestone %s reached! Reward deployed: %s', str(self.milestone), str(add))
         if done:
-            reward += 1000000
+            reward += 1e15
         return state_arr, reward, 0, 0
 
     def reset(self):
         self.manipulators.randomize()
         state = self.manipulators.calculateDifference()
-        state_arr = state
+        state_arr = state.reshape((7, 1))
+        res = (state_arr - self.best_difference) ** 2
+        self.previous_diff = sum(res)
+
         self.milestone = 0
         return state_arr

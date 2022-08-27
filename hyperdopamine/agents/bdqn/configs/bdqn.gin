@@ -37,14 +37,14 @@ tf.train.AdamOptimizer.learning_rate = 0.0001
 tf.train.AdamOptimizer.epsilon = 0.0003125
 
 create_discretised_environment.action_rep = 'branching'
-create_discretised_environment.num_sub_actions = 5
+create_discretised_environment.num_sub_actions = 6
 create_discretised_environment.environment_seed = 0
 
 # Use TrainRunner for train-only schedule or Runner for train-and-eval schedule, 
 # only needed for `create_environment_fn`.
 Runner.create_environment_fn = @multi_cont_lib.create_discretised_environment
 Runner.agent_seed = 0
-Runner.num_iterations = 150
+Runner.num_iterations = 10
 Runner.training_steps = 10000
 Runner.evaluation_steps = 5000
 Runner.render = False
